@@ -1,0 +1,104 @@
+TITLE:: SystemsEncounter
+summary:: Livecoding environment based on Steno
+categories:: Live Coding
+related:: Classes/Steno
+
+DESCRIPTION::
+Wrapper (and more) for live coding with Steno, Sensors, and controllers. Provides a GUI.
+
+
+CLASSMETHODS::
+
+METHOD:: new
+Returns a new instance.
+argument:: numChannels
+The number of channels of the interconnecting busses (this is the same across the whole synth tree).
+argument:: expand
+If set to true, the synth functions are multichannel expanded to numChannels.
+argument:: maxBracketDepth
+The maximum depth of nested brackets. This determines the number of busses that need to be allocated.
+argument:: server
+Server to play on.
+argument:: defaultDefPath
+Where to write definitions (click on the little red dot in the lower right to create a text document reflecting the current state)
+argument:: ctlBuses
+A dictionary of (code::ar::/code::kr::) buses reserved for controller values (e.g. set externally from a light sensor array or a MIDI controller). Used by link::Classes/SystemsEncounterSynthParts::.
+
+
+INSTANCEMETHODS::
+
+PRIVATE:: valueNoUpdate, initBuses, declareFBVars, initDefs, definitions, initSynthparts
+
+
+METHOD:: quelle, filter
+These two methods take a link::Classes/Function:: and convert it into a link::Classes/SynthDef::, represented by a letter.
+
+See link::Classes/Steno#-quelle:: and link::Classes/Steno#-filter:: for details.
+argument:: name
+argument:: func
+argument:: multiChannelExpand
+argument:: update
+argument:: numChannels
+
+
+METHOD:: value
+Interpret a string of steno code.
+argument:: string
+The program to run (a link::Classes/String::).
+
+METHOD:: getDef
+Returns textual definition of a given Char
+argument:: name
+the name of the function, one of link::#-myKeys::.
+
+METHOD:: window
+open a GUI. The first line holds the current Steno value. Each keystroke makes it re-evaluate.
+
+
+METHOD:: setFB
+set Feedback of a variable
+argument:: key
+one of link::#-myVars::
+argument:: val
+a value between -1 and 1
+
+METHOD:: synthParts
+link::Classes/SystemsEncounterSynthParts:: object for facilitating input and live coding shortcuts.
+
+
+
+METHOD:: myKeys
+A link::Classes/String:: holding link::Classes/Char::s used as keys to store synth definitions.
+
+METHOD:: myVars
+A link::Classes/String:: holding link::Classes/Char::s used as keys for link::Classes/Steno:: variables.
+
+METHOD:: ctlBuses
+A dictionary of (code::ar::/code::kr::) buses reserved for controller values (e.g. set externally from a light sensor array or a MIDI controller)
+
+
+
+
+
+METHOD:: writeDefs
+write definitions to a file
+argument:: path
+if empty, use default path
+argument:: varName
+name used to store code::SystemsEncounter:: instance. Typically "t".
+argument:: comment
+a comment to include into the file.
+
+METHOD:: defaultDefPath
+directory to write defintions to when link::#-writeDefs:: is called.
+
+
+
+
+
+
+EXAMPLES::
+
+code::
+_some_example_code_
+::

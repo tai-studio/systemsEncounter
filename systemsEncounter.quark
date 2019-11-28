@@ -1,0 +1,12 @@
+(
+	\name: 			"SystemsEncounter",
+	\path: 			"systemsEncounter", // path relative to the root Quarks folder
+	\summary:		"livecoding environment based on Steno",
+	\author: 		"Till Bovermann",
+	\organization: 	"tai-studio.org",
+	\dependancies: ["Steno", "wslib"],
+	\country: 		"Germany",
+	\since: 		"2019",
+	\url:           "http://tai-studio.org",
+	\version: 1.0,
+)

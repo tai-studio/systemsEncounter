@@ -1,0 +1,47 @@
+TITLE:: SystemsEncounterSynthParts
+summary:: livecoding helper for SystemsEncounter
+categories:: Live Coding
+related:: Classes/SystemsEncounter, Classes/Steno
+
+DESCRIPTION::
+easily manage and access external controls
+
+CLASSMETHODS::
+
+METHOD:: new
+Return a new instance
+argument:: model
+the code::SystemsEncounter:: model
+
+INSTANCEMETHODS::
+
+
+PRIVATE:: prUnfold, initSystemsEncounterSynthParts
+
+METHOD:: in
+get a specific input element as specified in link::Classes/SystemsEncounter-ctlBuses::
+argument:: key
+argument:: idx
+argument:: size
+argument:: step
+argument:: wrap
+
+METHOD:: initSystemsEncounterSynthParts
+argument:: argModel
+
+METHOD:: dict
+A dictionary to put things.
+
+METHOD:: doesNotUnderstand
+methods calls of descriptors not implemented in the class are forwarded to the dict.
+argument:: selector
+the method name
+argument:: ... args
+the arguments
+
+
+EXAMPLES::
+
+code::
+_some_example_code_
+::
