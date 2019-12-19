@@ -105,7 +105,7 @@ directory to write defintions to when link::#-writeDefs:: is called.
 EXAMPLES::
 
 
-image::SystemsEncounter-gui.jpg#Figure 1::
+image::SystemsEncounter-gui.jpg#gui::
 
 
 code::
