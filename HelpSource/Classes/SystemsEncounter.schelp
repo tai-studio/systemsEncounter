@@ -23,6 +23,10 @@ argument:: defaultDefPath
 Where to write definitions (click on the little red dot in the lower right to create a text document reflecting the current state)
 argument:: ctlBuses
 A dictionary of (code::ar::/code::kr::) buses reserved for controller values (e.g. set externally from a light sensor array or a MIDI controller). Used by link::Classes/SystemsEncounterSynthParts::.
+argument:: myQuellen
+Letters to be associated with the quellen.
+argument:: myFilters
+Letters to be associated with the filters.
 
 
 INSTANCEMETHODS::
@@ -97,8 +101,23 @@ directory to write defintions to when link::#-writeDefs:: is called.
 
 
 
+
 EXAMPLES::
 
+
+image::SystemsEncounter-gui.jpg#Figure 1::
+
+
 code::
-_some_example_code_
+t = SystemsEncounter(
+	numChannels: numChans,
+	expand: true,
+	server: s,
+	defaultDefPath: thisProcess.nowExecutingPath.dirname,
+	ctlBuses: ctlBuses,
+	// which letters to be associated with the quellen
+	myQuellen: "aeiou",
+	// which letters to be associated with filters
+	myFilters: "fldngx"
+);
 ::

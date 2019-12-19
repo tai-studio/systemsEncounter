@@ -379,6 +379,11 @@ SystemsEncounterGUI {
 
 SystemsEncounterControl {
 	classvar <>mantaBinary = "/localvol/sound/src/libmanta/MantaOSC/build/MantaOSC 0 31417 57120";
+	classvar <>mktlDescDir;
+
+	*initClass {
+		mktlDescDir = this.filenameSymbol.asString.dirname;
+	}
 
 	*launchControl {|model, mktl|
 		var n = mktl;
@@ -434,6 +439,142 @@ SystemsEncounterControl {
 
 	}
 
+	*lemur {|model, mktl|
+		var n = mktl;
+		var quellen, filter, vars, main;
+
+		main = mktl.elAt(\fVol);
+		quellen = MKtlElementGroup(\quellen, n, [
+			\a -> mktl.elAt(\mix, \sl, \a),
+			\e -> mktl.elAt(\mix, \sl, \e),
+			\i -> mktl.elAt(\mix, \sl, \i),
+			\o -> mktl.elAt(\mix, \sl, \o),
+			\u -> mktl.elAt(\mix, \sl, \u),
+		]);
+		filter = MKtlElementGroup(\filter, n, [
+			\f -> mktl.elAt(\mix, \sl, \f),
+			\l -> mktl.elAt(\mix, \sl, \l),
+			\d -> mktl.elAt(\mix, \sl, \d),
+			\n -> mktl.elAt(\mix, \sl, \n),
+			\g -> mktl.elAt(\mix, \sl, \g),
+			\x -> mktl.elAt(\mix, \sl, \x),
+		]);
+		vars = MKtlElementGroup(\vars, n, [
+			\0 -> mktl.elAt(\mix, \sl, \0),
+			\1 -> mktl.elAt(\mix, \sl, \1),
+			\2 -> mktl.elAt(\mix, \sl, \2),
+			\3 -> mktl.elAt(\mix, \sl, \3),
+		]);
+
+		mktl.addNamed(\quellen, quellen);
+		mktl.addNamed(\filter, filter);
+		mktl.addNamed(\vars, vars);
+
+
+		main.action = {|el|
+			model.monitor.set(\amp, el.value);
+		};
+
+		model.myQuellen.collectAs(_.asSymbol, Array).do{|key|
+			mktl.elAt(\quellen, key).action = {|el|
+				model.set(key, \mix, el.value)
+			}
+		};
+		model.myFilters.collectAs(_.asSymbol, Array).do{|key|
+			mktl.elAt(\filter, key).action = {|el|
+				model.set(key, \mix, el.value)
+			}
+		};
+		model.myVars.collectAs(_.asSymbol, Array).do{|key|
+			mktl.elAt(\vars, key).action = {|el|
+				model.setFB(key, el.value.linlin(0, 1, -1, 1))
+			}
+		};
+
+		// reset buttons
+		[\a, \e, \i, \o, \u, \f, \l, \d, \n, \g, \x].collect{|name|
+			mktl.elAt(\mix, \bt, name).action = {|el|
+				mktl.elAt(\mix, \sl, name).valueAction_(0);
+			};
+		};
+		[\0, \1, \2, \3].collect{|name|
+			mktl.elAt(\mix, \bt, name).action = {|el|
+				mktl.elAt(\mix, \sl, name).valueAction_(0.5);
+			};
+		};
+
+		// update lemur interface
+		SkipJack({
+			model.myQuellen.collectAs(_.asSymbol, Array).do{|key|
+				mktl.elAt(\quellen, key).value = model.get(key, \mix)
+			};
+			model.myFilters.collectAs(_.asSymbol, Array).do{|key|
+				mktl.elAt(\filter, key).value = model.get(key, \mix)
+			};
+			model.myVars.collectAs(_.asSymbol, Array).do{|key|
+				mktl.elAt(\vars, key).value = model.get(key, \feedback).linlin(-1, 1, 0, 1)
+			};
+			model.monitor.get(\amp, {|v| main.value = v});
+
+		}, dt: 0.1, stopTest: {mktl.isNil});
+	}
+
+
+	*nanoKontrol2 {|model, mktl|
+		var n = mktl;
+		var quellen, filter, vars, main;
+
+		main = mktl.elAt(\sl, 5);
+		quellen = MKtlElementGroup(\quellen, n, [
+			\a -> mktl.elAt(\sl, 0),
+			\e -> mktl.elAt(\sl, 1),
+			\i -> mktl.elAt(\sl, 2),
+			\o -> mktl.elAt(\sl, 3),
+			\u -> mktl.elAt(\sl, 4),
+		]);
+		filter = MKtlElementGroup(\filter, n, [
+			\f -> mktl.elAt(\kn, 0),
+			\l -> mktl.elAt(\kn, 1),
+			\d -> mktl.elAt(\kn, 2),
+			\n -> mktl.elAt(\kn, 3),
+			\g -> mktl.elAt(\kn, 4),
+			\x -> mktl.elAt(\kn, 5),
+		]);
+		vars = MKtlElementGroup(\vars, n, [
+			\0 -> mktl.elAt(\sl, 6),
+			\1 -> mktl.elAt(\sl, 7),
+			\2 -> mktl.elAt(\kn, 6),
+			\3 -> mktl.elAt(\kn, 7)
+		]);
+
+		mktl.addNamed(\quellen, quellen);
+		mktl.addNamed(\filter, filter);
+		mktl.addNamed(\vars, vars);
+
+
+		main.action = {|el|
+			model.monitor.set(\amp, el.value);
+		};
+
+		model.myQuellen.collectAs(_.asSymbol, Array).do{|key|
+			mktl.elAt(\quellen, key).action = {|el|
+				model.set(key, \mix, el.value)
+			}
+		};
+		model.myFilters.collectAs(_.asSymbol, Array).do{|key|
+			mktl.elAt(\filter, key).action = {|el|
+				model.set(key, \mix, el.value)
+			}
+		};
+		model.myVars.collectAs(_.asSymbol, Array).do{|key|
+			mktl.elAt(\vars, key).action = {|el|
+				model.setFB(key, el.value.linlin(0, 1, -1, 1))
+			}
+		};
+
+	}
+
+
 	*mantaStart {
 		mantaBinary.runInTerminal;
 	}
@@ -480,10 +621,10 @@ SystemsEncounterControl {
 		);
 
 		specs = (
-		// measured
+			// measured
 			\light1: [0.056891709566116, 0.94933462142944].asSpec,
 			\light2: [0.033085092902184, 0.92284214496613].asSpec,
-		// guesstimate
+			// guesstimate
 			\temperature: [0, 35].asSpec,
 			\humidity: [15, 100].asSpec
 		);
@@ -542,10 +683,10 @@ SystemsEncounterControl {
 				specs[\humidity].unmap(humidity)
 			]);
 
-				// bus.setAt(0, specs[\light1].unmap(light[0]);
-				// bus.setAt(1, specs[\light2].unmap(light[1]);
-				// bus.setAt(2, specs[\temperature].unmap(temperature));
-				// bus.setAt(3, specs[\humidity].unmap(humidity));
+			// bus.setAt(0, specs[\light1].unmap(light[0]);
+			// bus.setAt(1, specs[\light2].unmap(light[1]);
+			// bus.setAt(2, specs[\temperature].unmap(temperature));
+			// bus.setAt(3, specs[\humidity].unmap(humidity));
 			// light.round(0.01).postln;
 
 		};
