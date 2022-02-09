@@ -121,10 +121,10 @@ SystemsEncounter : Steno {
 		this.addSynthDef(\monitor, { |out, in, amp = 0.1, level = 0.9|
 			Out.ar(out,
 				Limiter.ar(
-					LeakDC.ar(In.ar(in, numChannels)) * amp.lag(0.1),
+					LeakDC.ar(In.ar(in, numChannels)),
 					level,
 					0.05
-				)
+				) * amp.lag(0.1)
 			)
 		}, force:true);
 
@@ -276,6 +276,7 @@ SystemsEncounterGUI {
 
 		// set general amplitude
 		vSlider = EZSmoothSlider(
+			// vSlider = EZSlider(
 			window,
 			(width - (2*window.view.decorator.margin.x))@20,
 			// "%".format(c).asSymbol,
@@ -299,10 +300,12 @@ SystemsEncounterGUI {
 				//.stringColor_(color.copy.alpha_(1));
 			};
 			var button = SmoothButton(window, 20@20)
+			// var button = Button(window, 20@20)
 			.states_([[ c.asString ]] )
 			.action_(displayFunc)
 			.background_(color);
 			var slider = EZSmoothSlider(
+				// var slider = EZSlider(
 				window,
 				elemExt@20,
 				// "".format(c).asString,
@@ -321,10 +324,12 @@ SystemsEncounterGUI {
 			var color = Color.rand.alpha_(0.5);
 			var slider;
 			SmoothButton(window, 20@20)
+			// Button(window, 20@20)
 			.states_([[ c.asString ]] )
 			// .action_({ this. })
 			.background_(color);
 			slider = EZSmoothSlider(
+			// slider = EZSlider(
 				window,
 				elemExt@20,
 				// "%".format(c).asSymbol,
@@ -347,6 +352,7 @@ SystemsEncounterGUI {
 			var descTextView = TextView(window, elemExt@20);
 
 			SmoothButton(window, 20@20)
+			// Button(window, 20@20)
 			.states_([[ c.asString ]] )
 			.action_({ model.writeDefs(comment: descTextView.string) })
 			.background_(color);
@@ -366,9 +372,9 @@ SystemsEncounterGUI {
 				(model.myVars.contains(key.asString).not).if({
 					// non-vars
 					slider.value = model.get(key, \mix);
-				}, {
-					// vars
-					slider.value = model.get(key, \feedback);
+					}, {
+						// vars
+						slider.value = model.get(key, \feedback);
 				})
 			};
 			model.monitor.get(\amp, {|v| vSlider.value = v});
@@ -378,7 +384,7 @@ SystemsEncounterGUI {
 }
 
 SystemsEncounterControl {
-	classvar <>mantaBinary = "/localvol/sound/src/libmanta/MantaOSC/build/MantaOSC 0 31417 57120";
+	classvar <>mantaBinary = "/Users/Shared/localvol/sound/src/libmanta/MantaOSC/build/MantaOSC 0 31417 57120";
 	classvar <>mktlDescDir;
 
 	*initClass {
@@ -418,6 +424,7 @@ SystemsEncounterControl {
 
 
 		main.action = {|el|
+			// model.server.volume.volume.postln;
 			model.monitor.set(\amp, el.value);
 		};
 
