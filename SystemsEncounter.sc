@@ -752,9 +752,11 @@ SystemsEncounterSynthParts {
 		#hardWrap, offset, rate = this.prUnfold(key);
 		wrap = wrap ? hardWrap;
 
-		^In.perform(rate, (
+		result = In.perform(rate, (
 			offset + (((Array.series(size, 0, step) % wrap) + idx) % hardWrap)
 		));
+
+		^result.unbubble;
 	}
 	doesNotUnderstand {|selector ... args|
 		dict[selector].notNil.if{
