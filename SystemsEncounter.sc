@@ -99,8 +99,9 @@ SystemsEncounter : Steno {
 			"%%;".format(varName, this.getDef(c.asSymbol).asString)
 		};
 		defs.do{|d|
+			file.write("(\n");
 			file.write(d);
-			file.write("\n");
+			file.write("\n);\n");
 		};
 		file.close;
 		"SystemsEncounter: written defs to %".format(path).inform;
@@ -173,13 +174,13 @@ SystemsEncounter : Steno {
 
 	////////////// GUI
 
-	window {
+	window {|width, height|
 		window.isNil.if({
-			window = SystemsEncounterGUI(this);
+			window = SystemsEncounterGUI(this, width, height);
 			^window;
 		});
 		window.isClosed.if({
-			window = SystemsEncounterGUI(this);
+			window = SystemsEncounterGUI(this, width, height);
 			^window;
 		});
 
@@ -191,13 +192,17 @@ SystemsEncounter : Steno {
 
 SystemsEncounterGUI {
 	var <isClosed, window, model;
-	var codeView, <cmdView, <defSliders, vSlider, width = 425, height = 950, elemExt, elemExtHalf, textView, randData, decorator;
+	var codeView, <cmdView, <defSliders, vSlider, width, height, elemExt, elemExtHalf, textView, randData, decorator;
 	var skipJack;
 
-	*new {|model|
-		^super.new.init(model)
+	*new {|model, width, height|
+		width = width ? 450;
+		height = height ?? {Window.availableBounds.height};
+
+		^super.new.init(model, width, height)
 	}
-	init {|argModel|
+	init {|argModel, width, height|
+		var cmdViewHeight, sliderHeight, codeViewHeight, gapHeight;
 
 		isClosed = false;
 		model = argModel;
@@ -206,18 +211,26 @@ SystemsEncounterGUI {
 		randData = thisThread.randData;
 		thisThread.randSeed = 2017;
 
+
 		window = Window(
 			"systems ∿ encounter",
 			Rect(0, 0, width, height),
 			false
 		).decorate;
-		window.onClose({isClosed = true});
+		window.onClose_({isClosed = true});
 
 		decorator   = window.view.decorator;
 		elemExt     = (width - window.view.decorator.margin.x) - 30;
-		elemExtHalf = (width/2 - window.view.decorator.margin.x - window.view.decorator.gap.x) - 5;
+		elemExtHalf = (width/2 - window.view.decorator.margin.x) - 5;
 
-		cmdView = TextView(window, (width - (2*window.view.decorator.margin.x))@40)
+		cmdViewHeight = 40;
+		sliderHeight = 20;
+		gapHeight = (window.view.decorator.margin.y + window.view.decorator.gap.y);
+		codeViewHeight = height - cmdViewHeight - gapHeight - ((2 + model.myKeys.size + model.myVars.size) * (sliderHeight + gapHeight));
+
+
+
+		cmdView = TextView(window, (width - (2*window.view.decorator.margin.x))@cmdViewHeight)
 		.string_(model.rawCmdLine)
 		.keyDownAction_{|me, c ... f|
 			(c == $().if{
@@ -263,22 +276,11 @@ SystemsEncounterGUI {
 		.font_(Font(Font.defaultMonoFace, 18));
 		decorator.nextLine;
 
-		codeView = TextView(window, (width - (2*window.view.decorator.margin.x))@150)
-		.enterInterpretsSelection_(false)
-		.font_(Font(Font.defaultMonoFace, 12))
-		.keyDownAction_{|view ... b|
-			(b.last == 16777220 and: {b[1] == 524288 or: {b[1] == 131072}}).if{
-				view.string.interpret;
-			}
-		}
-		.tabWidth_(21);
-		decorator.nextLine;
-
 		// set general amplitude
 		vSlider = EZSmoothSlider(
 			// vSlider = EZSlider(
 			window,
-			(width - (2*window.view.decorator.margin.x))@20,
+			(width - (2*window.view.decorator.margin.x))@sliderHeight,
 			// "%".format(c).asSymbol,
 			nil,
 			[ 0, 1].asSpec,
@@ -299,7 +301,7 @@ SystemsEncounterGUI {
 				// .syntaxColorize;
 				//.stringColor_(color.copy.alpha_(1));
 			};
-			var button = SmoothButton(window, 20@20)
+			var button = SmoothButton(window, 20@sliderHeight)
 			// var button = Button(window, 20@20)
 			.states_([[ c.asString ]] )
 			.action_(displayFunc)
@@ -307,7 +309,7 @@ SystemsEncounterGUI {
 			var slider = EZSmoothSlider(
 				// var slider = EZSlider(
 				window,
-				elemExt@20,
+				elemExt@sliderHeight,
 				// "".format(c).asString,
 				nil,
 				[ 0, 1].asSpec,
@@ -323,7 +325,7 @@ SystemsEncounterGUI {
 		model.myVars.do{|c|
 			var color = Color.rand.alpha_(0.5);
 			var slider;
-			SmoothButton(window, 20@20)
+			SmoothButton(window, 20@sliderHeight)
 			// Button(window, 20@20)
 			.states_([[ c.asString ]] )
 			// .action_({ this. })
@@ -331,7 +333,7 @@ SystemsEncounterGUI {
 			slider = EZSmoothSlider(
 			// slider = EZSlider(
 				window,
-				elemExt@20,
+				elemExt@sliderHeight,
 				// "%".format(c).asSymbol,
 				nil,
 				[ -1, 1].asSpec,
@@ -345,13 +347,26 @@ SystemsEncounterGUI {
 		};
 
 		decorator.nextLine;
+
+		codeView = TextView(window, (width - (2*window.view.decorator.margin.x))@codeViewHeight)
+		.enterInterpretsSelection_(false)
+		.font_(Font(Font.defaultMonoFace, 12))
+		.keyDownAction_{|view ... b|
+			(b.last == 16777220 and: {b[1] == 524288 or: {b[1] == 131072}}).if{
+				view.string.interpret;
+			}
+		}
+		.tabWidth_(21);
+
+		decorator.nextLine;
+
+		// write def file
 		"f".do{|c|
 			var color = Color.blue;
-			// write def file
 			// description text
-			var descTextView = TextView(window, elemExt@20);
+			var descTextView = TextView(window, elemExt@sliderHeight);
 
-			SmoothButton(window, 20@20)
+			SmoothButton(window, 20@sliderHeight)
 			// Button(window, 20@20)
 			.states_([[ c.asString ]] )
 			.action_({ model.writeDefs(comment: descTextView.string) })
@@ -360,11 +375,18 @@ SystemsEncounterGUI {
 			decorator.nextLine;
 		};
 
+
+
 		thisThread.randData = randData;
 		// window.alwaysOnTop_(true);
 		window.front;
 		this.initSkipjack;
 	}
+
+	front {
+		window.front
+	}
+
 
 	initSkipjack {
 		skipJack = SkipJack({
