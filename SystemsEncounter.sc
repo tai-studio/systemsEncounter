@@ -7,6 +7,7 @@ SystemsEncounter : Steno {
 	var <>myVars = "0123";
 	var <>synthParts;
 	var <>ctlBuses; // buses reserved for external controls (cameras, sensors, manta, microphones...)
+	var <morph;
 
 	*new { |numChannels = 2, expand = false, maxBracketDepth = 8, server, defaultDefPath, ctlBuses, myQuellen, myFilters|
 		^super.new(
@@ -331,7 +332,7 @@ SystemsEncounterGUI {
 			// .action_({ this. })
 			.background_(color);
 			slider = EZSmoothSlider(
-			// slider = EZSlider(
+				// slider = EZSlider(
 				window,
 				elemExt@sliderHeight,
 				// "%".format(c).asSymbol,
@@ -394,9 +395,9 @@ SystemsEncounterGUI {
 				(model.myVars.contains(key.asString).not).if({
 					// non-vars
 					slider.value = model.get(key, \mix);
-					}, {
-						// vars
-						slider.value = model.get(key, \feedback);
+				}, {
+					// vars
+					slider.value = model.get(key, \feedback);
 				})
 			};
 			model.monitor.get(\amp, {|v| vSlider.value = v});
@@ -615,8 +616,9 @@ SystemsEncounterControl {
 		cons = mktl.elAt(\cons);
 		sliders = mktl.elAt(\sliders);
 
+		// ManTa Pad >> mt_p
 		pBus = Bus.control(model.server, cons.deviceValue.size);
-		model.ctlBuses.put(\mtp, pBus);
+		model.ctlBuses.put(\mt_p, pBus);
 
 		cons.action = { |el|
 			var idx = cons.elemIndexOf(el);
@@ -624,8 +626,9 @@ SystemsEncounterControl {
 		};
 
 
+		// ManTa Slider >> mt_s
 		sBus = Bus.control(model.server, sliders.deviceValue.size);
-		model.ctlBuses.put(\mts, sBus);
+		model.ctlBuses.put(\mt_s, sBus);
 
 		sliders.action = { |el|
 			var idx = sliders.elemIndexOf(el);
@@ -634,6 +637,75 @@ SystemsEncounterControl {
 			}
 		};
 	}
+
+
+
+	*morphStart {
+		Morph().runBinary(scanDetail: 2);
+	}
+	*morph {|model|
+		var morph;
+		// useful average values , see https://github.com/tai-studio/senselosc#osc-interface
+		var avgKeys = #[\x, \y, \dist, \wX, \wY, \wDist, \area, \numContacts, \force, \tForce];
+		var avgBus;
+
+		// useful values per contact, see https://github.com/tai-studio/senselosc#osc-interface
+		// state should be first in list
+		var contactKeys = #[\state, \x, \y, \force, \peakX, \peakY, \peakForce, \area, \orientation, \dist, \wDist];
+		var contactKeysNoState = [\x, \y, \force, \peakX, \peakY, \peakForce, \area, \orientation, \dist, \wDist];
+		var contactBuses;
+
+		morph = Morph();
+		morph.start();
+
+		avgBus = Bus.control(model.server, avgKeys.size);
+		model.ctlBuses.put(\mo_avg, avgBus);
+
+		contactBuses = contactKeys.collectAs({|key|
+			key->Bus.control(model.server, morph.maxContacts)
+		}, Event);
+
+		// register buses to model with prefix "mo_" >> \mo_x, \mo_y, \mo_force, ...
+		contactBuses.keysValuesDo{|key, bus|
+			model.ctlBuses.put(("mo_%".format(key)).asSymbol, bus);
+		};
+
+
+		morph.syncAction = {|avg, contacts, me|
+			var vals;
+			var allContacts, keys;
+
+			// set avg
+			vals = avgKeys.collect{arg k;
+				avg[k]
+			};
+
+			avgBus.setn(vals);
+
+
+			// set contacts (use data structure holding all states here
+			vals = me.vals.contacts.collect{|contact|
+				var state, vals;
+
+				state = #[\end, \invalid].includes(contact.state).not.asInteger;
+
+				vals = contactKeysNoState.collect{|key|
+					contact[key] ? 0
+				};
+				[state] ++ vals
+			};
+
+			// array of values in the order of contactKeys
+			vals = vals.flop;
+
+			contactKeys.do{|k, i|
+				contactBuses[k].setn(vals[i])
+			};
+		};
+
+		^morph
+	}
+
 
 	*xosc {|model, mktl|
 		var semantics, specs, computeTemperature, computeHumidity;
@@ -746,10 +818,15 @@ SystemsEncounterSynthParts {
 		// };
 		dict[\manta] = {|key, idx = 0, size = 1, step = 1, wrap|
 			(key == \sl).if({
-				this.in(\mts, idx, size, step, wrap)
+				this.in(\mt_s, idx, size, step, wrap)
 			}, {
-				this.in(\mtp, idx, size, step, wrap)
+				this.in(\mt_p, idx, size, step, wrap)
 			})
+		};
+		dict[\morph] = {|key, idx = 0, size = 1, step = 1, wrap|
+			var busKey = "mo_%".format(key).asSymbol;
+
+			this.in(busKey, idx, size, step, wrap)
 		};
 		dict[\envir] = {|idx = 0, size = 1, step = 1, wrap|
 			this.in(\envir, idx, size, step, wrap)
