@@ -72,7 +72,7 @@ SystemsEncounter : Steno {
 
 		path.isNil.if{
 			// write to default location
-			path = defaultDefPath +/+ "%-defs_%.scd".format(this.class, Date.getDate.asSortableString)
+			path = defaultDefPath +/+ "%-defs_%_%.scd".format(this.class, comment.tr($ , $-), Date.getDate.asSortableString)
 		};
 
 
@@ -806,33 +806,60 @@ SystemsEncounterSynthParts {
 		model = argModel;
 		dict = ();
 
-		// backward compatibility
-		dict[\l2o] = {|idx = 0, size = 1, step = 1, wrap|
-			this.in(\lights, idx, size, step, wrap)
-		};
-		dict[\lights] = {|idx = 0, size = 1, step = 1, wrap|
-			this.in(\lights, idx, size, step, wrap)
-		};
-		// dict[\ain] = {|idx = 0, size = 1, step = 1, wrap|
-		// 	this.in(\ain, idx, size, step, wrap)
+		// // backward compatibility
+		// dict[\l2o] = {|idx = 0, size = 1, step = 1, wrap|
+		// 	this.in(\lights, idx, size, step, wrap)
 		// };
-		dict[\manta] = {|key, idx = 0, size = 1, step = 1, wrap|
-			(key == \sl).if({
-				this.in(\mt_s, idx, size, step, wrap)
-			}, {
-				this.in(\mt_p, idx, size, step, wrap)
-			})
-		};
-		dict[\morph] = {|key, idx = 0, size = 1, step = 1, wrap|
-			var busKey = "mo_%".format(key).asSymbol;
-
-			this.in(busKey, idx, size, step, wrap)
-		};
-		dict[\envir] = {|idx = 0, size = 1, step = 1, wrap|
-			this.in(\envir, idx, size, step, wrap)
-		};
+		// dict[\lights] = {|idx = 0, size = 1, step = 1, wrap|
+		// 	this.in(\lights, idx, size, step, wrap)
+		// };
+		// // dict[\ain] = {|idx = 0, size = 1, step = 1, wrap|
+		// // 	this.in(\ain, idx, size, step, wrap)
+		// // };
+		// dict[\manta] = {|key, idx = 0, size = 1, step = 1, wrap|
+		// 	(key == \sl).if({
+		// 		this.in(\mt_s, idx, size, step, wrap)
+		// 		}, {
+		// 			this.in(\mt_p, idx, size, step, wrap)
+		// 	})
+		// };
+		// dict[\morph] = {|key, idx = 0, size = 1, step = 1, wrap|
+		// 	var busKey = "mo_%".format(key).asSymbol;
+		//
+		// 	this.in(busKey, idx, size, step, wrap)
+		// };
+		// dict[\envir] = {|idx = 0, size = 1, step = 1, wrap|
+		// 	this.in(\envir, idx, size, step, wrap)
+		// };
 
 	}
+	lights {|idx = 0, size = 1, step = 1, wrap|
+		^this.in(\lights, idx, size, step, wrap)
+	}
+	// backward compatibility
+	l2o {|idx = 0, size = 1, step = 1, wrap|
+		^this.in(\lights, idx, size, step, wrap)
+	}
+
+	morph {|key, idx = 0, size = 1, step = 1, wrap|
+			var busKey = "mo_%".format(key).asSymbol;
+
+			^this.in(busKey, idx, size, step, wrap)
+	}
+
+	manta {|key = \pad, idx = 0, size = 1, step = 1, wrap|
+		(key == \sl).if({
+			^this.in(\mt_s, idx, size, step, wrap)
+		}, {
+			^this.in(\mt_p, idx, size, step, wrap)
+		})
+	}
+
+	envir {|idx = 0, size = 1, step = 1, wrap|
+		^this.in(\envir, idx, size, step, wrap)
+	}
+
+
 	prUnfold {|obj|
 		var wrap, bus, rate, idx;
 
